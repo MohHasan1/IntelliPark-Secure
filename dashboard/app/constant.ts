@@ -26,13 +26,27 @@ export const constantConfig: ConstantsConfig = {
       type: "entry",
     },
     "3": {
+      entry: "/img/car3.png",
+      lot_before: "/img/park2.png",
+      lot_after: "/img/park3.png",
+      exit: null,
+      type: "entry",
+    },
+    "4": {
+      entry: null,
+      lot_before: "/img/park3.png",
+      lot_after: "/img/park2.png",
+      exit: "/img/car3.png",
+      type: "exit",
+    },
+    "5": {
       entry: null,
       lot_before: "/img/park2.png",
       lot_after: "/img/park1.png",
       exit: "/img/car2.jpeg",
       type: "exit",
     },
-    "4": {
+    "6": {
       entry: null,
       lot_before: "/img/park1.png",
       lot_after: "/img/park0.png",

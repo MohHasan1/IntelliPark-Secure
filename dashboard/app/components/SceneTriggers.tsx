@@ -1,8 +1,9 @@
 type Props = {
   onTrigger: (id: string) => void;
+  sceneIds: string[];
 };
 
-export function SceneTriggers({ onTrigger }: Props) {
+export function SceneTriggers({ onTrigger, sceneIds }: Props) {
   return (
     <div className="rounded-2xl bg-linear-to-b from-slate-900 to-slate-950/40 p-5 shadow-xl shadow-black/50 ring-1 ring-white/5">
       <div className="flex items-center justify-between">
@@ -12,7 +13,7 @@ export function SceneTriggers({ onTrigger }: Props) {
         <span className="text-[11px] text-slate-400">API /scene/:id</span>
       </div>
       <div className="mt-4 grid grid-cols-2 gap-3">
-        {["1", "2", "3", "4"].map((id) => (
+        {sceneIds.map((id) => (
           <button
             key={id}
             onClick={() => onTrigger(id)}

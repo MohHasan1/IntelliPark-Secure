@@ -14,7 +14,7 @@ def main():
     os.makedirs(output_folder, exist_ok=True)
 
     # All image names you want to process
-    images = ["car1.png", "image11.jpeg"]
+    images = ["car3.png", "car4.png"]
 
     print("\n=== Starting ANPR Batch Processing ===\n")
 

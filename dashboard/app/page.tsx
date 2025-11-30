@@ -120,7 +120,10 @@ export default function Home() {
               stage={gateStage}
               mode={gateMode}
             />
-            <SceneTriggers onTrigger={runScene} />
+            <SceneTriggers
+              onTrigger={runScene}
+              sceneIds={Object.keys(defaultConstants.scenes || {})}
+            />
           </div>
         </div>
     </>
