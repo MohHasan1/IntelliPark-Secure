@@ -9,7 +9,7 @@ export function HeaderBar({ apiBase, loading, onRefresh }: Props) {
     <header className="flex items-center justify-between gap-4">
       <div>
         <p className="text-sm uppercase tracking-[0.3em] text-sky-300/80">
-          ParkVision Control
+          IntelliPark Control
         </p>
         <h1 className="text-3xl font-semibold text-sky-50">Live Lot Dashboard</h1>
       </div>

@@ -41,7 +41,7 @@ export function SceneMedia({ scenes, sceneId, stage, mode }: Props) {
     <div className="rounded-2xl bg-gradient-to-b from-slate-900 to-slate-950/60 p-4 shadow-xl shadow-black/40 ring-1 ring-white/5">
       <div className="mb-3 flex items-center justify-between">
         <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
-          Scene Media
+          Image to Models
         </p>
         <span className="text-[11px] text-slate-500">
           {sceneId ? `Scene ${sceneId}` : "Idle"}
