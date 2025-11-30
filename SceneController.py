@@ -19,20 +19,20 @@ class SceneController:
             "2": {
                 "entry": "./img/car2.jpeg",
                 "lot_before": "./img/park1.png",
-                "lot_after": "./img/park1.png",
+                "lot_after": "./img/park2.png",
                 "exit": None
             },
             "3": {
                 "entry": None,
-                "lot_before": None,
-                "lot_after": None,
-                "exit": "./img/car1.jpeg"
+                "lot_before": "./img/park2.png",
+                "lot_after": "./img/park2.png",
+                "exit": "./img/car2.jpeg"
             },
             "4": {
                 "entry": None,
-                "lot_before": None,
-                "lot_after": None,
-                "exit": "./img/car2.jpeg"
+                "lot_before": "./img/park1.png",
+                "lot_after": "./img/park0.png",
+                "exit": "./img/car1.jpeg"
             }
         }
 
