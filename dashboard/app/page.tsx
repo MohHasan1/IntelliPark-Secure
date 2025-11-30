@@ -6,6 +6,7 @@ import { StatsPanel } from "./components/StatsPanel";
 import { GateStatusPanel } from "./components/GateStatusPanel";
 import { SceneTriggers } from "./components/SceneTriggers";
 import { ParkingGrid } from "./components/ParkingGrid";
+import { SceneMedia } from "./components/SceneMedia";
 import { useParkingData } from "./hooks/useParkingData";
 import { useGateAnimation } from "./hooks/useGateAnimation";
 import { buildSpots, computeStats } from "./utils/parking";
@@ -22,6 +23,7 @@ export default function Home() {
   const { gateStage, activePlate, animateGate, setGateStageDirect } =
     useGateAnimation(defaultConstants.delays);
   const [gateMode, setGateMode] = useState<"entry" | "exit">("entry");
+  const [currentSceneId, setCurrentSceneId] = useState<string | null>(null);
 
   const totalSpots = defaultConstants.total_spots;
   const spots = useMemo(
@@ -34,6 +36,7 @@ export default function Home() {
     const sceneConfig = defaultConstants.scenes?.[sceneId];
     const mode = sceneConfig?.type === "exit" ? "exit" : "entry";
     setGateMode(mode);
+    setCurrentSceneId(sceneId);
     animateGate(mode);
     try {
       const res = await fetch(`${API_BASE}/scene/${sceneId}`, {
@@ -95,6 +98,12 @@ export default function Home() {
               activePlate={activePlate}
             />
             <SceneTriggers onTrigger={runScene} />
+            <SceneMedia
+              scenes={defaultConstants.scenes || {}}
+              sceneId={currentSceneId}
+              stage={gateStage}
+              mode={gateMode}
+            />
           </div>
         </div>
       </div>
