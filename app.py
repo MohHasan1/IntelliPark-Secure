@@ -112,6 +112,7 @@ def sessions_plate_all(plate):
 
 @app.get("/sessions/plate/<plate>/latest")
 def sessions_plate_latest(plate):
+    print("hahsaijxjaksnxk")
     return jsonify(success_res(ps.get_last_session_of_plate(plate)))
 
 

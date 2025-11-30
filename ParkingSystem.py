@@ -12,6 +12,7 @@ class ParkingSystem:
         self.apsd = APSD(apsd_model)
         self.analyzer = ParkingSpotAnalyzer()
 
+        self.db_path = db_path
         self.db = TinyDB(db_path)
 
         self.sessions = self.db.table("sessions")
@@ -180,46 +181,40 @@ class ParkingSystem:
     # ------------------------------------------------------------------
     # DB ACCESS HELPERS
     # ------------------------------------------------------------------
+    
+    def reload_db(self):
+        """Reload TinyDB and tables to reflect latest JSON state."""
+        self.db = TinyDB(self.db_path)
+        self.sessions = self.db.table("sessions")
+        self.allowed = self.db.table("allowed_cars")
+
 
     def get_db(self):
+        self.reload_db()
         return self.sessions.all()
 
     def get_current_sessions(self):
-        """
-        Returns all sessions WHERE status = 'entering' OR 'parked'.
-        These are the cars currently inside the parking lot.
-        """
+        self.reload_db()
         Car = Query()
-        return self.sessions.search(
-            (Car.status == "entering") | (Car.status == "parked")
-        )
+        return self.sessions.search((Car.status == "entering") | (Car.status == "parked"))
 
     def get_past_sessions(self):
-        """
-        Returns sessions WHERE status = 'exited'.
-        These are completed sessions.
-        """
+        self.reload_db()
         Car = Query()
         return self.sessions.search(Car.status == "exited")
 
     def get_sessions_of_plate(self, plate: str):
-        """
-        Returns ALL sessions for a given plate.
-        Includes active + past sessions.
-        """
-        plate = slug_plate(plate)
+        self.reload_db()
         Car = Query()
-        return self.sessions.search(Car.plate == plate)
+        return self.sessions.search(Car.plate == slug_plate(plate))
 
     def get_last_session_of_plate(self, plate: str):
-        """
-        Returns MOST RECENT session of a license plate.
-        """
-        plate = slug_plate(plate)
-        sessions = self.get_sessions_of_plate(plate)
-        if not sessions:
+        self.reload_db()
+        rows = self.get_sessions_of_plate(plate)
+        if not rows:
             return None
-        return sorted(sessions, key=lambda x: x["session_id"], reverse=True)[0]
+        return sorted(rows, key=lambda x: x["session_id"], reverse=True)[0]
+
 
     # ------------------------------------------------------------------
     # ALLOWED CAR CHECK

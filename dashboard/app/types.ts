@@ -3,6 +3,7 @@ export type ParkingSession = {
   plate: string;
   status: "entering" | "parked" | "exited" | string;
   spot?: number | null;
+  previous_spot?: number | null;
 };
 
 export type ApiResponse<T> = { data?: T; status?: boolean; error?: string };
