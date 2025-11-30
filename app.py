@@ -7,7 +7,6 @@ from SceneController import SceneController
 from utils.index import successRes as success_res, errorRes as error_res
 
 
-
 app = Flask(__name__)
 CORS(app)
 
@@ -82,6 +81,7 @@ def reset():
     ps.reset()
     return jsonify(success_res("System reset"))
 
+
 @app.post("/scene/<scene_id>")
 def run_scene(scene_id):
     try:
@@ -89,6 +89,90 @@ def run_scene(scene_id):
         return jsonify(success_res(result))
     except Exception as e:
         return jsonify(error_res(str(e))), 500
+
+
+# ================================
+# SESSIONS API
+# ================================
+
+@app.get("/sessions/current")
+def sessions_current():
+    return jsonify(success_res(ps.get_current_sessions()))
+
+
+@app.get("/sessions/past")
+def sessions_past():
+    return jsonify(success_res(ps.get_past_sessions()))
+
+
+@app.get("/sessions/plate/<plate>")
+def sessions_plate_all(plate):
+    return jsonify(success_res(ps.get_sessions_of_plate(plate)))
+
+
+@app.get("/sessions/plate/<plate>/latest")
+def sessions_plate_latest(plate):
+    return jsonify(success_res(ps.get_last_session_of_plate(plate)))
+
+
+# ================================
+# SECURITY TOGGLE API
+# ================================
+
+@app.get("/security/status")
+def security_status():
+    return jsonify(success_res({"enabled": ps.is_security_enabled()}))
+
+
+@app.post("/security/enable")
+def security_enable():
+    ps.enable_security()
+    return jsonify(success_res({"enabled": True}))
+
+
+@app.post("/security/disable")
+def security_disable():
+    ps.disable_security()
+    return jsonify(success_res({"enabled": False}))
+
+
+@app.post("/security/toggle")
+def security_toggle():
+    new_value = ps.toggle_security()
+    return jsonify(success_res({"enabled": new_value}))
+
+
+# ================================
+# ALLOWED CAR API
+# ================================
+
+@app.get("/allowed/list")
+def allowed_list():
+    return jsonify(success_res(ps.get_allowed_list()))
+
+
+@app.post("/allowed/add")
+def allowed_add():
+    data = request.json
+    plate = data.get("plate")
+
+    if not plate:
+        return jsonify(error_res("Missing plate")), 400
+
+    added = ps.add_allowed(plate)
+    return jsonify(success_res({"added": added, "plate": plate}))
+
+
+@app.post("/allowed/remove")
+def allowed_remove():
+    data = request.json
+    plate = data.get("plate")
+
+    if not plate:
+        return jsonify(error_res("Missing plate")), 400
+
+    ps.remove_allowed(plate)
+    return jsonify(success_res({"removed": True, "plate": plate}))
 
 
 if __name__ == "__main__":

@@ -93,17 +93,19 @@ export default function Home() {
 
           <div className="lg:col-span-2 lg:row-span-2 flex flex-col gap-3">
             <GateStatusPanel
-              timeline={gateMode === "exit" ? gateTimelineExit : gateTimelineEntry}
+              timeline={
+                gateMode === "exit" ? gateTimelineExit : gateTimelineEntry
+              }
               stage={gateStage}
               activePlate={activePlate}
             />
-            <SceneTriggers onTrigger={runScene} />
             <SceneMedia
               scenes={defaultConstants.scenes || {}}
               sceneId={currentSceneId}
               stage={gateStage}
               mode={gateMode}
             />
+            <SceneTriggers onTrigger={runScene} />
           </div>
         </div>
       </div>

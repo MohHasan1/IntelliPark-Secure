@@ -1,12 +1,9 @@
 from ANPR.ANPR import ANPR
 from APSD.APSD import APSD
-from APSD.ParkingSpotAnalyzer import ParkingSpotAnalyzer
 from tinydb import TinyDB, Query
-from datetime import datetime
+from APSD.ParkingSpotAnalyzer import ParkingSpotAnalyzer
 
-
-def now():
-    return datetime.now().isoformat()
+from utils.index import now, slug_plate
 
 
 class ParkingSystem:
@@ -16,13 +13,33 @@ class ParkingSystem:
         self.analyzer = ParkingSpotAnalyzer()
 
         self.db = TinyDB(db_path)
-        self.sessions = self.db.table("sessions")   # one table only
 
-        # For Option A comparison
+        self.sessions = self.db.table("sessions")
+        self.allowed = self.db.table("allowed_cars")
+
         self.previous_empty_spots = None
+        self.security_enabled = True
 
-        # Track autoincrement session id
         self.next_session_id = self._get_next_session_id()
+
+    # ------------------------------------------------------------------
+    # SECURITY TOGGLE METHODS
+    # ------------------------------------------------------------------
+
+    def enable_security(self):
+        self.security_enabled = True
+        return True
+
+    def disable_security(self):
+        self.security_enabled = False
+        return True
+
+    def toggle_security(self):
+        self.security_enabled = not self.security_enabled
+        return self.security_enabled
+
+    def is_security_enabled(self):
+        return self.security_enabled
 
     # ------------------------------------------------------------------
     # UTIL: Determine next session ID
@@ -49,18 +66,26 @@ class ParkingSystem:
     # ------------------------------------------------------------------
 
     def handle_entry(self, gate_image_path):
-        plate = self.anpr.detect(gate_image_path)
-        
-        # if same plate enters again with out exiting
+        plate_raw = self.anpr.detect(gate_image_path)
+        plate = slug_plate(plate_raw)  # clean slug
+
         Car = Query()
 
-        # If same plate is already inside (entering or parked)
+        # 🚨 SECURITY CHECK
+        if self.security_enabled:
+            if not self.is_allowed(plate):
+                return {
+                    "error": "ACCESS DENIED",
+                    "message": "Car is not on the allowed list",
+                    "plate": plate
+                }
+
+        # Prevent duplicate entry
         active_session = self.sessions.get(
             (Car.plate == plate) & (Car.status != "exited")
         )
 
         if active_session:
-            print(f"[WARNING] Duplicate entry blocked: {plate} already inside!")
             return {
                 "error": "Car already inside",
                 "plate": plate,
@@ -68,7 +93,7 @@ class ParkingSystem:
                 "status": active_session["status"]
             }
 
-
+        # Create new session
         session_id = self.next_session_id
         self.next_session_id += 1
 
@@ -81,8 +106,6 @@ class ParkingSystem:
             "park_time": None,
             "exit_time": None
         })
-
-        print(f"[ENTRY] Car entered: {plate} (session {session_id})")
 
         return plate
 
@@ -98,23 +121,14 @@ class ParkingSystem:
         summary = self.analyzer.get_parking_summary()
         empty_spots = summary["empty_spots"]
 
-        print(f"[LOT] Empty spots: {empty_spots}")
-
-        # First scan baseline
         if self.previous_empty_spots is None:
             self.previous_empty_spots = empty_spots.copy()
-            print("Baseline empty spots:", self.previous_empty_spots)
             return summary.copy()
 
-        print("PREVIOUS  ->", self.previous_empty_spots)
-        print("CURRENT   ->", empty_spots)
-
         newly_taken = list(set(self.previous_empty_spots) - set(empty_spots))
-        print("NEWLY TAKEN ->", newly_taken)
 
         if len(newly_taken) == 1:
-            spot_num = newly_taken[0]
-            self._assign_new_spot(spot_num)
+            self._assign_new_spot(newly_taken[0])
 
         self.previous_empty_spots = empty_spots.copy()
 
@@ -126,14 +140,11 @@ class ParkingSystem:
 
     def _assign_new_spot(self, spot_number):
         Car = Query()
-
-        # Find the latest "entering" session
         entering = self.sessions.search(Car.status == "entering")
+
         if not entering:
-            print("[PARK] No entering car to assign spot.")
             return
 
-        # Latest entering = max session id
         latest = sorted(
             entering, key=lambda x: x["session_id"], reverse=True)[0]
 
@@ -143,19 +154,18 @@ class ParkingSystem:
             "park_time": now()
         }, Car.session_id == latest["session_id"])
 
-        print(f"[PARK] {latest['plate']} assigned to spot {spot_number}")
-
     # ------------------------------------------------------------------
     # EVENT 3: EXIT
     # ------------------------------------------------------------------
 
     def handle_exit(self, exit_image_path):
-        plate = self.anpr.detect(exit_image_path)
+        plate_raw = self.anpr.detect(exit_image_path)
+        plate = slug_plate(plate_raw)
+
         Car = Query()
 
         latest = self._latest_session(plate)
         if latest is None:
-            print(f"[EXIT] Unknown car leaving: {plate}")
             return None
 
         self.sessions.update({
@@ -165,13 +175,73 @@ class ParkingSystem:
             "spot": None
         }, Car.session_id == latest["session_id"])
 
-        print(f"[EXIT] Car exited: {plate} (session {latest['session_id']})")
-
         return plate
 
     # ------------------------------------------------------------------
-    # GET DB
+    # DB ACCESS HELPERS
     # ------------------------------------------------------------------
 
     def get_db(self):
         return self.sessions.all()
+
+    def get_current_sessions(self):
+        """
+        Returns all sessions WHERE status = 'entering' OR 'parked'.
+        These are the cars currently inside the parking lot.
+        """
+        Car = Query()
+        return self.sessions.search(
+            (Car.status == "entering") | (Car.status == "parked")
+        )
+
+    def get_past_sessions(self):
+        """
+        Returns sessions WHERE status = 'exited'.
+        These are completed sessions.
+        """
+        Car = Query()
+        return self.sessions.search(Car.status == "exited")
+
+    def get_sessions_of_plate(self, plate: str):
+        """
+        Returns ALL sessions for a given plate.
+        Includes active + past sessions.
+        """
+        plate = slug_plate(plate)
+        Car = Query()
+        return self.sessions.search(Car.plate == plate)
+
+    def get_last_session_of_plate(self, plate: str):
+        """
+        Returns MOST RECENT session of a license plate.
+        """
+        plate = slug_plate(plate)
+        sessions = self.get_sessions_of_plate(plate)
+        if not sessions:
+            return None
+        return sorted(sessions, key=lambda x: x["session_id"], reverse=True)[0]
+
+    # ------------------------------------------------------------------
+    # ALLOWED CAR CHECK
+    # ------------------------------------------------------------------
+
+    def is_allowed(self, plate: str) -> bool:
+        Car = Query()
+        return self.allowed.contains(Car.plate == plate)
+
+    def add_allowed(self, plate: str):
+        plate = slug_plate(plate)
+        Car = Query()
+
+        if not self.allowed.contains(Car.plate == plate):
+            self.allowed.insert({"plate": plate})
+            return True
+        return False
+
+    def remove_allowed(self, plate: str):
+        plate = slug_plate(plate)
+        Car = Query()
+        self.allowed.remove(Car.plate == plate)
+
+    def get_allowed_list(self):
+        return self.allowed.all()

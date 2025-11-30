@@ -13,6 +13,8 @@ class SceneController:
         # Load directly from config.py
         self.scenes = CONST["scenes"]
         self.delays = CONST["delays"]
+        
+        self.ps.add_allowed("a8o8-xyz")
 
     def pause(self, seconds, message):
         print(message, end="", flush=True)
@@ -35,9 +37,12 @@ class SceneController:
             self.pause(self.delays["entry_delay"], "Detecting License Plate at gate.")
             plate = self.ps.handle_entry(config["entry"])
             summary_log.append({"entry": plate})
+            
+            if isinstance(plate, dict) and "error" in plate:
+                print(plate)
+                return 
 
-            self.pause(self.delays["lot_scan_delay"],
-                       "Looking for a Spot")
+            self.pause(self.delays["lot_scan_delay"], "Looking for a Spot")
 
         # ---- BEFORE PARK ----
         if config["lot_before"]:
@@ -64,9 +69,8 @@ class SceneController:
             "db": self.ps.get_db(),
         }
 
+
 # Testing the Scene controller #
-
-
 def main():
     sc = SceneController()
 
