@@ -145,8 +145,8 @@ class ParkingSpotAnalyzer:
             "total_spots": len(self.all_spots),
             "parked_count": len(self.parked_spot_numbers),
             "empty_count": len(self.empty_spot_numbers),
-            "empty_spots": self.empty_spot_numbers,
-            "parked_spots": self.parked_spot_numbers,
+            "empty_spots": self.empty_spot_numbers.copy(),
+            "parked_spots": self.parked_spot_numbers.copy(),
         }
 
     # ------------------------------------------------------------

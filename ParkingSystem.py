@@ -50,6 +50,24 @@ class ParkingSystem:
 
     def handle_entry(self, gate_image_path):
         plate = self.anpr.detect(gate_image_path)
+        
+        # if same plate enters again with out exiting
+        Car = Query()
+
+        # If same plate is already inside (entering or parked)
+        active_session = self.sessions.get(
+            (Car.plate == plate) & (Car.status != "exited")
+        )
+
+        if active_session:
+            print(f"[WARNING] Duplicate entry blocked: {plate} already inside!")
+            return {
+                "error": "Car already inside",
+                "plate": plate,
+                "session_id": active_session["session_id"],
+                "status": active_session["status"]
+            }
+
 
         session_id = self.next_session_id
         self.next_session_id += 1
@@ -86,7 +104,7 @@ class ParkingSystem:
         if self.previous_empty_spots is None:
             self.previous_empty_spots = empty_spots.copy()
             print("Baseline empty spots:", self.previous_empty_spots)
-            return summary
+            return summary.copy()
 
         print("PREVIOUS  ->", self.previous_empty_spots)
         print("CURRENT   ->", empty_spots)
@@ -100,7 +118,7 @@ class ParkingSystem:
 
         self.previous_empty_spots = empty_spots.copy()
 
-        return summary
+        return summary.copy()
 
     # ------------------------------------------------------------------
     # Assign spot

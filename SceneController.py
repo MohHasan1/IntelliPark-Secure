@@ -1,6 +1,7 @@
 # SceneController.py
 
 import cv2
+import time
 from ParkingSystem import ParkingSystem
 
 
@@ -8,7 +9,7 @@ class SceneController:
     def __init__(self):
         self.ps = ParkingSystem()
 
-        # PRESET IMAGE PATHS FOR SCENES
+        # Preset demo scenes
         self.scenes = {
             "1": {
                 "entry": "./img/car1.jpeg",
@@ -25,7 +26,7 @@ class SceneController:
             "3": {
                 "entry": None,
                 "lot_before": "./img/park2.png",
-                "lot_after": "./img/park2.png",
+                "lot_after": "./img/park1.png",
                 "exit": "./img/car2.jpeg"
             },
             "4": {
@@ -36,36 +37,70 @@ class SceneController:
             }
         }
 
+    # -------------------------
+    # ANIMATION HELPERS
+    # -------------------------
+
+    def pause(self, seconds, message):
+        """Smooth animation delay."""
+        print(message, end="", flush=True)
+        for _ in range(seconds):
+            print(".", end="", flush=True)
+            time.sleep(1)
+        print()  # new line
+
+    # -------------------------
+    # RUN SCENE
+    # -------------------------
+
     def run_scene(self, key):
         if key not in self.scenes:
-            print(f"❌ Scene '{key}' does not exist.")
-            return
-
-        print(f"\n=========== Running {key} ===========")
+            return {"error": f"Scene '{key}' does not exist."}
 
         config = self.scenes[key]
+        summary_log = []
 
-        # 1. Entry
-        if config["entry"] is not None:
-            self.ps.handle_entry(config["entry"])
+        print(f"\n=========== Running Scene {key} ===========")
 
-        # 2. Lot before parking
-        if config["lot_before"] is not None:
+        # ---- ENTRY ----
+        if config["entry"]:
+            self.pause(2, "Detecting car at gate")
+            plate = self.ps.handle_entry(config["entry"])
+            summary_log.append({"entry": plate})
+
+            self.pause(2, "Car moving toward parking area")
+
+        # ---- BEFORE PARK IMAGE ----
+        if config["lot_before"]:
             img = cv2.imread(config["lot_before"])
-            self.ps.scan_parking_lot(img)
+            summary = self.ps.scan_parking_lot(img)
+            summary_log.append({"before": summary})
 
-        # 3. Lot after parking
-        if config["lot_after"] is not None:
+        # ---- SIMULATE PARKING ----
+        if config["lot_after"]:
+            self.pause(3, "Car searching for spot")
             img = cv2.imread(config["lot_after"])
-            self.ps.scan_parking_lot(img)
+            summary = self.ps.scan_parking_lot(img)
+            summary_log.append({"after": summary})
 
-        # 4. Exit
-        if config["exit"] is not None:
-            self.ps.handle_exit(config["exit"])
+        # ---- EXIT ----
+        if config["exit"]:
+            self.pause(2, "Car approaching exit gate")
+            plate = self.ps.handle_exit(config["exit"])
+            summary_log.append({"exit": plate})
 
-        print("DB:", self.ps.get_db())
+        print(f"Scene {key} complete.")
         print("=====================================\n")
 
+        return {
+            "scene": key,
+            "log": summary_log,
+            "db": self.ps.get_db()
+        }
+
+
+
+# Testing the Scene controller #
 def main():
     sc = SceneController()
 
@@ -88,6 +123,7 @@ def main():
         sc.run_scene(cmd)
 
     print("\nSystem shutting down. Goodbye.")
+
 
 if __name__ == "__main__":
     main()
