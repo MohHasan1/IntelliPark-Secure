@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { HeaderBar } from "./components/HeaderBar";
 import { StatsPanel } from "./components/StatsPanel";
 import { GateStatusPanel } from "./components/GateStatusPanel";
 import { SceneTriggers } from "./components/SceneTriggers";
@@ -24,6 +23,7 @@ export default function Home() {
     useGateAnimation(defaultConstants.delays);
   const [gateMode, setGateMode] = useState<"entry" | "exit">("entry");
   const [currentSceneId, setCurrentSceneId] = useState<string | null>(null);
+  const [blockedInfo, setBlockedInfo] = useState<{ plate?: string; message?: string } | null>(null);
 
   const totalSpots = defaultConstants.total_spots;
   const spots = useMemo(
@@ -37,15 +37,24 @@ export default function Home() {
     const mode = sceneConfig?.type === "exit" ? "exit" : "entry";
     setGateMode(mode);
     setCurrentSceneId(sceneId);
+    setBlockedInfo(null);
     animateGate(mode);
     try {
       const res = await fetch(`${API_BASE}/scene/${sceneId}`, {
         method: "POST",
       });
       const json = await res.json();
+      const data = json?.data as any;
+
+      if (data?.error) {
+        setBlockedInfo({ plate: data.plate, message: data.message || data.error });
+        setGateStageDirect("at_gate", data.plate || "Access Denied");
+        return;
+      }
+
       if (json?.data && Array.isArray((json.data as any).db)) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const db = (json.data as any).db;
+        const db = data.db;
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         setSessionsDirect(db as any);
         if (mode === "exit") {
@@ -75,13 +84,19 @@ export default function Home() {
   }, [refresh]);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-50">
-      <div className="mx-auto flex max-w-7xl flex-col gap-6 px-6 py-8">
-        <HeaderBar apiBase={apiBase} loading={loading} onRefresh={refresh} />
-
+    <>
         {error && (
           <div className="rounded-lg border border-sky-500/40 bg-sky-500/10 px-4 py-3 text-sm text-sky-100">
             {error}
+          </div>
+        )}
+        {blockedInfo && (
+          <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-100">
+            <div className="font-semibold">Access Denied</div>
+            <div>{blockedInfo.message || "Car is not on the allowed list."}</div>
+            {blockedInfo.plate && (
+              <div className="mt-1 text-xs text-red-200">Plate: {blockedInfo.plate}</div>
+            )}
           </div>
         )}
 
@@ -108,7 +123,6 @@ export default function Home() {
             <SceneTriggers onTrigger={runScene} />
           </div>
         </div>
-      </div>
-    </div>
+    </>
   );
 }

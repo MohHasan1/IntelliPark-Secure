@@ -40,7 +40,7 @@ class SceneController:
             
             if isinstance(plate, dict) and "error" in plate:
                 print(plate)
-                return 
+                return plate
 
             self.pause(self.delays["lot_scan_delay"], "Looking for a Spot")
 

@@ -45,3 +45,7 @@ export type SceneConfig = {
   exit: string | null;
   type: "entry" | "exit";
 };
+
+export type AllowedCar = {
+  plate: string;
+};
