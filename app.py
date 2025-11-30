@@ -22,7 +22,7 @@ def health():
 
 @app.get("/db")
 def db():
-    return jsonify(success_res(ps.get_all()))
+    return jsonify(success_res(ps.get_db()))
 
 
 # ENTRY
