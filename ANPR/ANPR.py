@@ -5,7 +5,6 @@ import easyocr
 import numpy as np
 from matplotlib import pyplot as plt
 
-
 class ANPR:
     def __init__(self):
         print("Initializing OCR reader one time...")

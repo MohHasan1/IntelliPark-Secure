@@ -1,1 +1,9 @@
-{"allowed_cars": {"1": {"plate": "a8o8-xyz"}, "2": {"plate": "umik-393"}, "3": {"plate": "cby1364"}, "4": {"plate": "ckbv343"}}, "meta": {"1": {"key": "scan_counter", "value": 184}}, "sessions": {"1": {"session_id": 39, "plate": "a8o8-xyz", "status": "exited", "spot": null, "entry_time": "2025-12-01T01:20:33.815963", "park_time": "2025-12-01T01:20:41.196645", "exit_time": "2025-12-01T01:25:36.911726", "previous_spot": 3}, "2": {"session_id": 40, "plate": "umik-393", "status": "parked", "spot": 2, "entry_time": "2025-12-01T01:20:46.920553", "park_time": "2025-12-01T01:20:54.254470", "exit_time": null}}}
+{
+  "allowed_cars": {
+    "1": { "plate": "a8o8-xyz" },
+    "2": { "plate": "umik-393" },
+    "3": { "plate": "cby1364" },
+    "4": { "plate": "ckbv343" }
+  },
+  "meta": { "1": { "key": "scan_counter", "value": 0 } }
+}

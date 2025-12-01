@@ -1,4 +1,4 @@
-from ultralytics import YOLO
+from APSD import APSD
 from ParkingSpotAnalyzer import ParkingSpotAnalyzer
 import cv2
 import os
@@ -9,7 +9,7 @@ def main():
     # SETTINGS
     # ----------------------------------------------------
     MODEL_PATH = "./APSD/apsd.pt"             # YOLO model
-    IMAGE_PATH = "./APSD/img/park4.png"    # image to process
+    IMAGE_PATH = "./APSD/img/img2.jpg"    # image to process
     OUTPUT_FOLDER = "./APSD/output"                # folder for saving
     SHOW_IMAGE = True                         # toggle display window
     
@@ -26,11 +26,11 @@ def main():
     # ----------------------------------------------------
     # LOAD YOLO PARKING-SPOT MODEL
     # ----------------------------------------------------
-    print("[INFO] Loading YOLO model...")
+    print("[INFO] Loading APSD model wrapper...")
     if not os.path.exists(MODEL_PATH):
         raise FileNotFoundError(f"Model not found: {MODEL_PATH}")
 
-    model = YOLO(MODEL_PATH)
+    apsd = APSD(MODEL_PATH, class_list=["car", "free"])
 
     # ----------------------------------------------------
     # LOAD IMAGE
@@ -45,7 +45,7 @@ def main():
     # RUN PARKING-SPOT DETECTION
     # ----------------------------------------------------
     print("[INFO] Running parking-spot detection...")
-    results = model.predict(image)
+    results = apsd.predict(image)
 
     # ----------------------------------------------------
     # PROCESS SPOTS (NUMBER + LABEL)

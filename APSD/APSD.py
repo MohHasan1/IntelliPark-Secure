@@ -9,6 +9,7 @@ class APSD:
         self.class_list = class_list if class_list else ["car", "free"]
         self.last_prediction = None
 
+    # json - result
     def predict(self, image):
         self.last_prediction = self.model.predict(image)
         return self.last_prediction

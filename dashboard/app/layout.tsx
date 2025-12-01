@@ -17,6 +17,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "IntelliPark",
   description: "IntelliPark Dashboard",
+  icons: { icon: "/favicon.svg" },
 };
 
 export default function RootLayout({
