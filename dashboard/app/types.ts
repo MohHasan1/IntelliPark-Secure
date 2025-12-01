@@ -12,7 +12,7 @@ export type GateStage =
   | "idle"
   | "at_gate"
   | "opening"
-  | "moving"
+  | "moving_in"
   | "searching"
   | "parked"
   | "exited";
