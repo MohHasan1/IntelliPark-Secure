@@ -44,6 +44,7 @@ export type SceneConfig = {
   lot_before: string | null;
   lot_after: string | null;
   exit: string | null;
+  exit_vehicle?: string | null;
   type: "entry" | "exit";
 };
 

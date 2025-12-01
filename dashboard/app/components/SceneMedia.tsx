@@ -41,7 +41,10 @@ export function SceneMedia({ scenes, sceneId, stage, mode, blocked = false }: Pr
   // Build secondary media slots depending on mode
   const mediaSlots =
     mode === "exit"
-      ? [{ src: scene?.lot_after || null, label: "After" }]
+      ? [
+          { src: scene?.exit_vehicle || scene?.exit || null, label: "Vehicle" },
+          { src: scene?.lot_after || null, label: "After" },
+        ]
       : [
           { src: scene?.lot_before || null, label: "Before" },
           { src: scene?.lot_after || null, label: "After" },
