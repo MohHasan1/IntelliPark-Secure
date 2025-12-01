@@ -6,9 +6,9 @@ type NavItem = {
 };
 
 const navItems: NavItem[] = [
-  { href: "/", label: "Overview" },
-  { href: "/allowed", label: "Allowed Plates" },
+  { href: "/", label: "Dashboard" },
   { href: "/find-car", label: "Find Car" },
+  { href: "/allowed", label: "Allowed Cars" },
 ];
 
 export function Sidebar() {

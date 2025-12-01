@@ -1,7 +1,13 @@
 function statColor(label: string) {
-  if (label === "Empty") return "from-emerald-400/60 to-emerald-700/40";
-  if (label === "Taken") return "from-red-400/60 to-red-700/40";
-  return "from-cyan-400/60 to-blue-700/40";
+  if (label === "Empty") return "from-emerald-300/30 via-emerald-500/10 to-emerald-700/5";
+  if (label === "Taken") return "from-red-400/30 via-red-500/10 to-red-700/5";
+  return "from-cyan-300/30 via-sky-500/10 to-blue-700/5";
+}
+
+function glowShadow(label: string) {
+  if (label === "Empty") return "0 0 32px 10px rgba(52, 211, 153, 0.28)";
+  if (label === "Taken") return "0 0 32px 10px rgba(248, 113, 113, 0.28)";
+  return "0 0 32px 10px rgba(56, 189, 248, 0.28)";
 }
 
 export type Stat = { label: string; value: number };
@@ -20,12 +26,19 @@ export function StatsPanel({ stats }: Props) {
         {stats.map((s) => (
           <div
             key={s.label}
-            className={`rounded-xl bg-linear-to-br ${statColor(
-              s.label
-            )} px-4 py-3 text-center shadow-inner shadow-black/40 ring-1 ring-white/5`}
+            className="relative overflow-hidden rounded-xl border border-white/12 bg-slate-900/70 px-4 py-4 text-center shadow-xl shadow-black/35 backdrop-blur-sm"
+            style={{ boxShadow: glowShadow(s.label) }}
           >
-            <div className="text-2xl font-semibold">{s.value}</div>
-            <div className="text-xs uppercase tracking-wide text-slate-100/80">
+            <div
+              className={`absolute inset-0 bg-linear-to-br ${statColor(
+                s.label
+              )} blur-md opacity-60`}
+            />
+            <div className="absolute inset-0 bg-white/7" />
+            <div className="relative text-2xl font-semibold text-slate-50 drop-shadow-[0_0_14px_rgba(255,255,255,0.3)]">
+              {s.value}
+            </div>
+            <div className="relative text-xs uppercase tracking-wide text-slate-200 drop-shadow-[0_0_10px_rgba(255,255,255,0.22)]">
               {s.label}
             </div>
           </div>
