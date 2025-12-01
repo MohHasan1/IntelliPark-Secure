@@ -150,7 +150,7 @@ class ParkingSpotAnalyzer:
         }
 
     # ------------------------------------------------------------
-    # SAVE + SHOW (SEPARATE)
+    # SAVE + SHOW 
     # ------------------------------------------------------------
 
     def save(self, output_path="annotated.jpg"):

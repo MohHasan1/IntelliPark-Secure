@@ -2,7 +2,8 @@ from ANPR.ANPR import ANPR
 from APSD.APSD import APSD
 from tinydb import TinyDB, Query
 from APSD.ParkingSpotAnalyzer import ParkingSpotAnalyzer
-
+import os
+import shutil
 from utils.index import now, slug_plate
 
 
@@ -17,11 +18,13 @@ class ParkingSystem:
 
         self.sessions = self.db.table("sessions")
         self.allowed = self.db.table("allowed_cars")
+        self.meta = self.db.table("meta")
 
         self.previous_empty_spots = None
         self.security_enabled = True
 
         self.next_session_id = self._get_next_session_id()
+        self.next_scan_id = self._get_next_scan_id()
 
     # ------------------------------------------------------------------
     # SECURITY TOGGLE METHODS
@@ -43,7 +46,7 @@ class ParkingSystem:
         return self.security_enabled
 
     # ------------------------------------------------------------------
-    # UTIL: Determine next session ID
+    # UTIL: session
     # ------------------------------------------------------------------
 
     def _get_next_session_id(self):
@@ -51,9 +54,22 @@ class ParkingSystem:
             return 1
         return max(row["session_id"] for row in self.sessions.all()) + 1
 
-    # ------------------------------------------------------------------
-    # UTIL: Get latest session for plate
-    # ------------------------------------------------------------------
+    def _get_next_scan_id(self):
+        Meta = Query()
+        row = self.meta.get(Meta.key == "scan_counter")
+        if row and "value" in row:
+            return row["value"]
+        return 1
+
+    def _bump_scan_id(self):
+        Meta = Query()
+        current = self.next_scan_id
+        self.next_scan_id += 1
+        self.meta.upsert(
+            {"key": "scan_counter", "value": self.next_scan_id},
+            Meta.key == "scan_counter"
+        )
+        return current
 
     def _latest_session(self, plate):
         Car = Query()
@@ -68,7 +84,16 @@ class ParkingSystem:
 
     def handle_entry(self, gate_image_path):
         plate_raw = self.anpr.detect(gate_image_path)
-        plate = slug_plate(plate_raw)  # clean slug
+        plate = slug_plate(plate_raw)
+
+        # Save
+        try:
+            folder = "./output/anpr/entry"
+            os.makedirs(folder, exist_ok=True)
+            prefix = f"entry_scan_{self._bump_scan_id()}"
+            self.anpr.save(folder=folder, prefix=prefix)
+        except Exception as e:
+            print(f"[WARN] Failed to save ANPR entry images: {e}")
 
         Car = Query()
 
@@ -119,6 +144,20 @@ class ParkingSystem:
         self.analyzer.add_image_direct(lot_image)
         self.analyzer.annotate_image(results)
 
+        # save with persistent scan index
+        OUTPUT_FOLDER = "./output/apsd/"
+        os.makedirs(OUTPUT_FOLDER, exist_ok=True)
+
+        scan_id = self._bump_scan_id()
+        base_name = f"scan_{scan_id}"
+        output_path = os.path.join(OUTPUT_FOLDER, f"{base_name}_annotated.jpg")
+
+        try:
+            self.analyzer.save(output_path=output_path)
+        except TypeError:
+            self.analyzer.save(output_path)
+
+        # calculate
         summary = self.analyzer.get_parking_summary()
         empty_spots = summary["empty_spots"]
 
@@ -176,18 +215,28 @@ class ParkingSystem:
             "spot": None
         }, Car.session_id == latest["session_id"])
 
+        # Save ANPR debug outputs for exit
+        try:
+            anpr_folder = "./output/anpr/exit"
+            os.makedirs(anpr_folder, exist_ok=True)
+            prefix = f"exit_scan_{self._bump_scan_id()}"
+            self.anpr.save(folder=anpr_folder, prefix=prefix)
+        except Exception as e:
+            print(f"[WARN] Failed to save ANPR exit images: {e}")
+
         return plate
 
     # ------------------------------------------------------------------
     # DB ACCESS HELPERS
     # ------------------------------------------------------------------
-    
+
     def reload_db(self):
         """Reload TinyDB and tables to reflect latest JSON state."""
         self.db = TinyDB(self.db_path)
         self.sessions = self.db.table("sessions")
         self.allowed = self.db.table("allowed_cars")
-
+        self.meta = self.db.table("meta")
+        self.next_scan_id = self._get_next_scan_id()
 
     def get_db(self):
         self.reload_db()
@@ -214,7 +263,6 @@ class ParkingSystem:
         if not rows:
             return None
         return sorted(rows, key=lambda x: x["session_id"], reverse=True)[0]
-
 
     # ------------------------------------------------------------------
     # ALLOWED CAR CHECK

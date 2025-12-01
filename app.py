@@ -18,13 +18,16 @@ scene_controller = SceneController()
 def health():
     return jsonify(success_res("ok"))
 
+# ================================
+# Core API
+# ================================
+
 
 @app.get("/db")
 def db():
     return jsonify(success_res(ps.get_db()))
 
 
-# ENTRY
 @app.post("/event/entry")
 def entry():
     data = request.json
@@ -40,7 +43,6 @@ def entry():
         return jsonify(error_res(str(e))), 500
 
 
-# SCAN
 @app.post("/event/scan")
 def scan():
     data = request.json
@@ -60,7 +62,6 @@ def scan():
         return jsonify(error_res(str(e))), 500
 
 
-# EXIT
 @app.post("/event/exit")
 def exit_event():
     data = request.json
@@ -80,6 +81,10 @@ def exit_event():
 def reset():
     ps.reset()
     return jsonify(success_res("System reset"))
+
+# ================================
+# Scene API
+# ================================
 
 
 @app.post("/scene/<scene_id>")

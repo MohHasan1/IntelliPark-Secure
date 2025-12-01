@@ -1,1 +1,0 @@
-get_last_session_of_plate
