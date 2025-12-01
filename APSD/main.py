@@ -9,7 +9,7 @@ def main():
     # SETTINGS
     # ----------------------------------------------------
     MODEL_PATH = "./APSD/apsd.pt"             # YOLO model
-    IMAGE_PATH = "./APSD/img/park3.png"    # image to process
+    IMAGE_PATH = "./APSD/img/park4.png"    # image to process
     OUTPUT_FOLDER = "./APSD/output"                # folder for saving
     SHOW_IMAGE = True                         # toggle display window
     

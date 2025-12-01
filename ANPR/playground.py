@@ -5,7 +5,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 # 1. Read the image
-img = cv2.imread("./img/test/car1.png")
+img = cv2.imread("./img/test/car4.png")
 
 # Check if image loaded
 if img is None:

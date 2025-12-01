@@ -6,6 +6,7 @@ import { GateStatusPanel } from "./components/GateStatusPanel";
 import { SceneTriggers } from "./components/SceneTriggers";
 import { ParkingGrid } from "./components/ParkingGrid";
 import { SceneMedia } from "./components/SceneMedia";
+import { FullLotBanner } from "./components/FullLotBanner";
 import { useParkingData } from "./hooks/useParkingData";
 import { useGateAnimation } from "./hooks/useGateAnimation";
 import { buildSpots, computeStats } from "./utils/parking";
@@ -19,7 +20,13 @@ import {
 export default function Home() {
   const { sessions, loading, error, apiBase, refresh, setSessionsDirect } =
     useParkingData();
-  const { gateStage, activePlate, animateGate, setGateStageDirect } =
+  const {
+    gateStage,
+    activePlate,
+    animateGate,
+    setGateStageDirect,
+    cancelGate,
+  } =
     useGateAnimation(defaultConstants.delays);
   const [gateMode, setGateMode] = useState<"entry" | "exit">("entry");
   const [currentSceneId, setCurrentSceneId] = useState<string | null>(null);
@@ -31,6 +38,10 @@ export default function Home() {
     [totalSpots, sessions]
   );
   const stats = useMemo(() => computeStats(spots), [spots]);
+  const isFull = useMemo(
+    () => spots.length > 0 && spots.every((s) => s.occupied),
+    [spots]
+  );
 
   const runScene = async (sceneId: string) => {
     const sceneConfig = defaultConstants.scenes?.[sceneId];
@@ -47,8 +58,14 @@ export default function Home() {
       const data = json?.data as any;
 
       if (data?.error) {
-        setBlockedInfo({ plate: data.plate, message: data.message || data.error });
-        setGateStageDirect("at_gate", data.plate || "Access Denied");
+        setBlockedInfo({
+          plate: data.plate,
+          message: data.message || data.error,
+        });
+        const label =
+          data.message || data.error || data.plate || "Access Denied";
+        setGateStageDirect("at_gate", label);
+        cancelGate();
         return;
       }
 
@@ -99,11 +116,16 @@ export default function Home() {
             )}
           </div>
         )}
+        <FullLotBanner isFull={isFull} />
 
         <div className="grid gap-6 lg:grid-cols-6 auto-rows-[minmax(120px,1fr)]">
           <div className="lg:col-span-4 lg:row-span-2 flex flex-col gap-4">
             <StatsPanel stats={stats} />
             <ParkingGrid spots={spots} />
+             <SceneTriggers
+              onTrigger={runScene}
+              sceneIds={Object.keys(defaultConstants.scenes || {})}
+            />
           </div>
 
           <div className="lg:col-span-2 lg:row-span-2 flex flex-col gap-3">
@@ -119,11 +141,12 @@ export default function Home() {
               sceneId={currentSceneId}
               stage={gateStage}
               mode={gateMode}
+              blocked={Boolean(blockedInfo)}
             />
-            <SceneTriggers
+            {/* <SceneTriggers
               onTrigger={runScene}
               sceneIds={Object.keys(defaultConstants.scenes || {})}
-            />
+            /> */}
           </div>
         </div>
     </>

@@ -10,14 +10,15 @@ export const fallbackSessions: ParkingSession[] = [];
 export const gateTimelineEntry: GateTimelineItem[] = [
   { key: "at_gate", label: "Reading License" },
   { key: "opening", label: "Gate Opened" },
-  { key: "moving_in", label: "Looking for a Spot" },
+  { key: "moving", label: "Looking for a Spot" },
   { key: "searching", label: "Parking" },
   { key: "parked", label: "Parked" },
 ];
 
 export const gateTimelineExit: GateTimelineItem[] = [
-  { key: "at_gate", label: "Reading License" },
-  { key: "exited", label: "Exited" },
+  { key: "at_gate", label: "Detecting License Plate" },
+  { key: "moving", label: "Scanning Lot" },
+  { key: "exited", label: "Exiting" },
 ];
 
 export const defaultConstants: ConstantsConfig = constantConfig;

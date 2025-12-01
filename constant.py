@@ -33,20 +33,34 @@ CONST = {
             "type": "entry"
         },
         "4": {
+            "entry": "./img/car4.png",
+            "lot_before": "./img/park3.png",
+            "lot_after": "./img/park4.png",
+            "exit": None,
+            "type": "entry"
+        },
+        "5": {
+            "entry": None,
+            "lot_before": "./img/park4.png",
+            "lot_after": "./img/park3.png",
+            "exit": "./img/car4.png",
+            "type": "exit",
+        },
+        "6": {
             "entry": None,
             "lot_before": "./img/park3.png",
             "lot_after": "./img/park2.png",
             "exit": "./img/car3.png",
             "type": "exit",
         },
-        "5": {
+        "7": {
             "entry": None,
             "lot_before": "./img/park2.png",
             "lot_after": "./img/park1.png",
             "exit": "./img/car2.jpeg",
             "type": "exit"
         },
-        "6": {
+        "8": {
             "entry": None,
             "lot_before": "./img/park1.png",
             "lot_after": "./img/park0.png",

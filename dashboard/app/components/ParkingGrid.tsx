@@ -6,7 +6,7 @@ type Props = {
 
 export function ParkingGrid({ spots }: Props) {
   return (
-    <main className="rounded-3xl bg-gradient-to-br from-slate-900 to-slate-950/70 p-6 shadow-2xl shadow-black/60 ring-1 ring-white/5">
+    <main className="rounded-3xl bg-linear-to-br from-slate-900 to-slate-950/70 p-6 shadow-2xl shadow-black/60 ring-1 ring-white/5">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
@@ -69,7 +69,7 @@ export function ParkingGrid({ spots }: Props) {
                     occupied ? "text-red-200" : "text-emerald-200"
                   }`}
                 >
-                  <span className="translate-y-[1px]">🚗</span>
+                  <span className="translate-y-px">🚗</span>
                 </div>
               </div>
             </div>

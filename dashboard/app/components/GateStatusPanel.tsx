@@ -11,7 +11,7 @@ export function GateStatusPanel({ timeline, stage, activePlate }: Props) {
     <div className="rounded-2xl bg-linear-to-b from-slate-900 to-slate-950/50 p-5 shadow-xl shadow-black/50 ring-1 ring-white/5">
       <div className="flex items-center justify-between">
         <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
-          Gate Status
+          Status
         </p>
         <span className="rounded-full bg-slate-800 px-3 py-1 text-[11px] text-slate-200 ring-1 ring-white/5">
           {activePlate || "Idle"}

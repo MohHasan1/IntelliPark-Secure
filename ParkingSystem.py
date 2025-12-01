@@ -1,9 +1,8 @@
+import os
 from ANPR.ANPR import ANPR
 from APSD.APSD import APSD
 from tinydb import TinyDB, Query
 from APSD.ParkingSpotAnalyzer import ParkingSpotAnalyzer
-import os
-import shutil
 from utils.index import now, slug_plate
 
 

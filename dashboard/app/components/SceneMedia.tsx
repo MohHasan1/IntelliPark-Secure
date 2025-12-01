@@ -6,15 +6,18 @@ type Props = {
   sceneId: string | null;
   stage: GateStage;
   mode: "entry" | "exit";
+  blocked?: boolean;
 };
 
 function pickImage(scene: SceneConfig, stage: GateStage, mode: "entry" | "exit") {
   if (!scene) return null;
 
   if (mode === "exit") {
+    // Exit flow: align images to gate stages
     if (stage === "at_gate") return scene.exit || scene.entry;
-    if (stage === "exited") return scene.lot_after || scene.lot_before || scene.exit;
-    return scene.exit || scene.lot_before || scene.entry;
+    if (stage === "moving_in") return scene.lot_after || scene.exit || scene.entry;
+    if (stage === "exited") return scene.lot_after || scene.exit || scene.entry;
+    return scene.exit || scene.lot_after || scene.entry;
   }
 
   switch (stage) {
@@ -31,11 +34,18 @@ function pickImage(scene: SceneConfig, stage: GateStage, mode: "entry" | "exit")
   }
 }
 
-export function SceneMedia({ scenes, sceneId, stage, mode }: Props) {
+export function SceneMedia({ scenes, sceneId, stage, mode, blocked = false }: Props) {
   const scene = (sceneId && scenes[sceneId]) || null;
   const primaryImg = scene ? pickImage(scene, stage, mode) : null;
-  const beforeImg = scene?.lot_before || null;
-  const afterImg = scene?.lot_after || null;
+
+  // Build secondary media slots depending on mode
+  const mediaSlots =
+    mode === "exit"
+      ? [{ src: scene?.lot_after || null, label: "After" }]
+      : [
+          { src: scene?.lot_before || null, label: "Before" },
+          { src: scene?.lot_after || null, label: "After" },
+        ];
 
   return (
     <div className="rounded-2xl bg-linear-to-b from-slate-900 to-slate-950/60 p-4 shadow-xl shadow-black/40 ring-1 ring-white/5">
@@ -50,6 +60,11 @@ export function SceneMedia({ scenes, sceneId, stage, mode }: Props) {
 
       <div className="flex flex-col gap-3">
         <div className="relative overflow-hidden rounded-xl border border-slate-800 bg-slate-900/60 shadow-inner shadow-black/50 ring-1 ring-white/5">
+          {blocked && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-slate-900/70 text-sm font-semibold text-red-100">
+              Access denied — stopped sending images to models
+            </div>
+          )}
           <div className="relative aspect-video bg-slate-800/60">
             {primaryImg ? (
               <Image
@@ -81,49 +96,34 @@ export function SceneMedia({ scenes, sceneId, stage, mode }: Props) {
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <div className="overflow-hidden rounded-lg border border-slate-800 bg-slate-900/60 shadow-inner shadow-black/40 ring-1 ring-white/5">
-            <div className="relative aspect-video bg-slate-800/60">
-              {beforeImg ? (
-                <Image
-                  src={beforeImg.replace(/^\.\//, "/")}
-                  alt={`Scene ${sceneId || ""} before`}
-                  fill
-                  className="object-cover"
-                  sizes="50vw"
-                  unoptimized
-                />
-              ) : (
-                <div className="flex h-full items-center justify-center text-xs text-slate-500">
-                  No before image
+          {mediaSlots.map(
+            (slot, idx) =>
+              slot.src && (
+                <div
+                  key={`${slot.label}-${idx}`}
+                  className="overflow-hidden rounded-lg border border-slate-800 bg-slate-900/60 shadow-inner shadow-black/40 ring-1 ring-white/5"
+                >
+                  <div className="relative aspect-video bg-slate-800/60">
+                    <Image
+                      src={slot.src.replace(/^\.\//, "/")}
+                      alt={`Scene ${sceneId || ""} ${slot.label.toLowerCase()}`}
+                      fill
+                      className="object-cover"
+                      sizes="50vw"
+                      unoptimized
+                    />
+                  </div>
+                  <div className="px-3 py-2 text-xs uppercase tracking-wide text-slate-300">
+                    {slot.label}
+                  </div>
                 </div>
-              )}
+              )
+          )}
+          {mediaSlots.every((slot) => !slot.src) && (
+            <div className="col-span-2 rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-4 text-center text-xs text-slate-500">
+              No media available.
             </div>
-            <div className="px-3 py-2 text-xs uppercase tracking-wide text-slate-300">
-              Before
-            </div>
-          </div>
-
-          <div className="overflow-hidden rounded-lg border border-slate-800 bg-slate-900/60 shadow-inner shadow-black/40 ring-1 ring-white/5">
-            <div className="relative aspect-video bg-slate-800/60">
-              {afterImg ? (
-                <Image
-                  src={afterImg.replace(/^\.\//, "/")}
-                  alt={`Scene ${sceneId || ""} after`}
-                  fill
-                  className="object-cover"
-                  sizes="50vw"
-                  unoptimized
-                />
-              ) : (
-                <div className="flex h-full items-center justify-center text-xs text-slate-500">
-                  No after image
-                </div>
-              )}
-            </div>
-            <div className="px-3 py-2 text-xs uppercase tracking-wide text-slate-300">
-              After
-            </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

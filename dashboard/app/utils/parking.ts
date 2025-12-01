@@ -6,10 +6,10 @@ export function buildSpots(total: number, sessions: ParkingSession[]): Spot[] {
     if (s.spot && s.status !== "exited") occupied.set(s.spot, s);
   });
 
-  const computedTotal = Math.max(
-    total,
-    ...Array.from(occupied.keys()).map((n) => n + 1)
-  );
+  const highestOccupied = occupied.size
+    ? Math.max(...Array.from(occupied.keys()))
+    : 0;
+  const computedTotal = Math.max(total, highestOccupied);
 
   return Array.from({ length: computedTotal }, (_, i) => {
     const spotNum = i + 1;
