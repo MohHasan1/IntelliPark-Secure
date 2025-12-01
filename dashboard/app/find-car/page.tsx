@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ApiResponse, ParkingSession } from "../types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:5001";
@@ -27,6 +27,7 @@ export default function FindCarPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ParkingSession | null>(null);
+  const [plateImages, setPlateImages] = useState<Record<string, string>>({});
 
   const lookup = async () => {
     const value = normalizePlate(plate);
@@ -59,6 +60,23 @@ export default function FindCarPage() {
     result?.status === "exited"
       ? result?.previous_spot
       : result?.spot ?? result?.previous_spot;
+
+  const prevSpot = result?.previous_spot;
+  const currentSpot = result?.spot;
+
+  const plateImage =
+    (result?.plate && plateImages[result.plate]) || "/img/car1.jpeg";
+
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem("plateImages");
+      if (stored) {
+        setPlateImages(JSON.parse(stored));
+      }
+    } catch (e) {
+      console.warn("Could not load plate images", e);
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-50">
@@ -103,13 +121,19 @@ export default function FindCarPage() {
 
         {result && (
           <div className="rounded-2xl bg-linear-to-b from-slate-900 to-slate-950/60 p-5 shadow-xl shadow-black/50 ring-1 ring-white/5">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-xs uppercase tracking-[0.2em] text-slate-400">
-                  Latest Session
-                </div>
-                <div className="text-2xl font-semibold text-slate-50">
-                  {result.plate}
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-4">
+                <div
+                  className="h-16 w-24 rounded-lg border border-slate-800 bg-center bg-cover ring-1 ring-white/5"
+                  style={{ backgroundImage: `url(${plateImage.replace(/^\.\//, "/")})` }}
+                />
+                <div>
+                  <div className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                    Plate
+                  </div>
+                  <div className="text-2xl font-semibold text-slate-50">
+                    {result.plate}
+                  </div>
                 </div>
               </div>
               <span
@@ -131,12 +155,18 @@ export default function FindCarPage() {
               </div>
               <div>
                 <div className="text-xs uppercase tracking-[0.2em] text-slate-400">
-                  Spot
+                  Current Spot
                 </div>
                 <div className="text-lg font-semibold">
-                  {spotValue !== undefined && spotValue !== null
-                    ? spotValue
-                    : "N/A"}
+                  {currentSpot ?? "N/A"}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                  Previous Spot
+                </div>
+                <div className="text-lg font-semibold">
+                  {prevSpot ?? "N/A"}
                 </div>
               </div>
             </div>

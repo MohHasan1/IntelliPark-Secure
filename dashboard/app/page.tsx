@@ -31,6 +31,7 @@ export default function Home() {
   const [gateMode, setGateMode] = useState<"entry" | "exit">("entry");
   const [currentSceneId, setCurrentSceneId] = useState<string | null>(null);
   const [blockedInfo, setBlockedInfo] = useState<{ plate?: string; message?: string } | null>(null);
+  const [plateImages, setPlateImages] = useState<Record<string, string>>({});
 
   const totalSpots = defaultConstants.total_spots;
   const spots = useMemo(
@@ -89,6 +90,29 @@ export default function Home() {
           const plateLabel =
             (latestActive && (latestActive.plate as string)) || "Parked";
           setGateStageDirect("parked", plateLabel);
+
+          // store vehicle image for this specific plate
+          const sceneImage = sceneConfig?.entry || null;
+          const plateKey = (latestActive && (latestActive.plate as string)) || null;
+          if (sceneImage && plateKey) {
+            const nextMap = { ...plateImages, [plateKey]: sceneImage };
+            setPlateImages(nextMap);
+            window.localStorage.setItem("plateImages", JSON.stringify(nextMap));
+          }
+        }
+
+        if (mode === "exit") {
+          const nextMap = { ...plateImages };
+          const exited = Array.isArray(db)
+            ? (db as any[]).filter((s) => s && s.status === "exited")
+            : [];
+          exited.forEach((s) => {
+            if (s.plate && nextMap[s.plate]) {
+              delete nextMap[s.plate];
+            }
+          });
+          setPlateImages(nextMap);
+          window.localStorage.setItem("plateImages", JSON.stringify(nextMap));
         }
       }
     } catch {
@@ -98,6 +122,14 @@ export default function Home() {
 
   useEffect(() => {
     refresh();
+    try {
+      const stored = window.localStorage.getItem("plateImages");
+      if (stored) {
+        setPlateImages(JSON.parse(stored));
+      }
+    } catch (e) {
+      console.warn("Could not load plate images", e);
+    }
   }, [refresh]);
 
   return (
@@ -121,8 +153,8 @@ export default function Home() {
         <div className="grid gap-6 lg:grid-cols-6 auto-rows-[minmax(120px,1fr)]">
           <div className="lg:col-span-4 lg:row-span-2 flex flex-col gap-4">
             <StatsPanel stats={stats} />
-            <ParkingGrid spots={spots} />
-             <SceneTriggers
+            <ParkingGrid spots={spots} plateImages={plateImages} />
+            <SceneTriggers
               onTrigger={runScene}
               sceneIds={Object.keys(defaultConstants.scenes || {})}
             />

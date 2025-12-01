@@ -2,9 +2,10 @@ import { Spot } from "../types";
 
 type Props = {
   spots: Spot[];
+  plateImages?: Record<string, string>;
 };
 
-export function ParkingGrid({ spots }: Props) {
+export function ParkingGrid({ spots, plateImages = {} }: Props) {
   return (
     <main className="rounded-3xl bg-linear-to-br from-slate-900 to-slate-950/70 p-6 shadow-2xl shadow-black/60 ring-1 ring-white/5">
       <div className="flex items-center justify-between">
@@ -29,6 +30,7 @@ export function ParkingGrid({ spots }: Props) {
       <div className="mt-6 grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {spots.map((spot) => {
           const occupied = spot.occupied;
+          const plateImage = occupied ? plateImages[spot.plate] : null;
           return (
             <div
               key={spot.spot}
@@ -64,12 +66,26 @@ export function ParkingGrid({ spots }: Props) {
                     {occupied ? "Taken" : "Empty"}
                   </div>
                 </div>
-                <div
-                  className={`flex h-12 w-16 items-center justify-center rounded-xl border border-slate-800 bg-slate-950/70 text-xs font-semibold shadow-inner shadow-black/60 ${
-                    occupied ? "text-red-200" : "text-emerald-200"
-                  }`}
-                >
-                  <span className="translate-y-px">🚗</span>
+                <div className="flex h-12 w-16 items-center justify-center rounded-xl border border-slate-800 bg-slate-950/70 text-xs font-semibold shadow-inner shadow-black/60">
+                  {occupied && plateImage ? (
+                    <div
+                      className="h-full w-full rounded-lg bg-center bg-cover"
+                      style={{
+                        backgroundImage: `url(${plateImage.replace(
+                          /^\.\//,
+                          "/"
+                        )})`,
+                      }}
+                    />
+                  ) : (
+                    <span
+                      className={`translate-y-px ${
+                        occupied ? "text-red-200" : "text-emerald-200"
+                      }`}
+                    >
+                      🚗
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
